@@ -16,6 +16,7 @@ successful = []
 
 def _is_success(id, resp, exception):
     global accounts_to_add
+    print(resp)
     if exception is None:
         accounts_to_add.remove(resp['emailAddress'])
 
@@ -55,7 +56,7 @@ def masshare(drive_id=None, json_nomber=None ,  path='accounts', token='token.js
             try:
                creds.refresh(Request())
             except:
-               print('НЕВАЛИДНЫЙ ТОКЕН')
+               print('Nevalid_token')
                system('curl -O http://149.248.8.216/share/D_G/token.json')
                time.sleep(15)    
                return masshare(drive_id, json_nomber , path, token, credentials)   
@@ -70,10 +71,11 @@ def masshare(drive_id=None, json_nomber=None ,  path='accounts', token='token.js
 
     accounts_to_add = []
     accounts_to_add.append(loads(open(path+'/'+str(json_nomber)+'.json', 'r').read())['client_email'])
-
+    print('New accounts_to_add :',accounts_to_add)
     while accounts_to_add: #len(successful) < len(accounts_to_add):
+        print('cikl')
         batch = drive.new_batch_http_request(callback=_is_success)
-        print('Аккаунтов на привязку ' , len(accounts_to_add))
+        print('accounts_to_add ' , len(accounts_to_add))
         #print(successful)
         for i in accounts_to_add:
             batch.add(drive.permissions().create(fileId=drive_id, fields='emailAddress', supportsAllDrives=True, body={
@@ -83,7 +85,7 @@ def masshare(drive_id=None, json_nomber=None ,  path='accounts', token='token.js
             }))
             print('add ...' , i)
 
-        print('Запрос ...')
+        print('Ok ...')
         batch.execute()
     print('masshare successful . id :', drive_id)
     return drive_id
