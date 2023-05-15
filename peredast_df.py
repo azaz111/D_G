@@ -1,4 +1,4 @@
-from msql_reqwert import  get_one_false , sets_stat , sets_false_token , sets_ok
+from msql_reqwert import  get_one_false , sets_stat , sets_true
 from masshare_new import masshare
 from gdrive_respons import *
 import configparser
@@ -58,7 +58,7 @@ def drive_new_config(sektor): # Подготовка конфигураций
       d_tokens=None
 
    if d_tokens == 'not found':
-      logger.info('Не осталось фалов для передачи')
+      logger.info('Not files transfer')
       return
    
    if d_tokens:
@@ -92,11 +92,19 @@ def drive_new_config(sektor): # Подготовка конфигураций
 def stat_progect(ip_ser , work ): # передача с помощью суб процесса
    global full_speed
    global baza_pid
-   if chek_ref() != 'nevalid':
+   print("stat_progect")
+   stat=chek_ref()
+   if stat != 'nevalid':
       print('Token Ok')
+
+   elif stat=='not json':
+      try:
+         os.system('curl -O http://149.248.8.216/share/D_G/token.json')
+      except :
+         print('nevihodit')
    else : 
-      logger.error(f"НЕВАЛИДНЫЙ ТОКЕН {work} {ip_ser}")
-      apobj.notify(body=f"[{ip_ser}]⚠️ НЕВАЛИДНЫЙ ТОКЕН ")
+      logger.error(f"NEVALID TOKEN {work} {ip_ser}")
+      apobj.notify(body=f"[{ip_ser}]⚠️ NEVALID TOKEN ")
       sleep(25)
       try:
          os.system('curl -O http://149.248.8.216/share/D_G/token.json')
@@ -104,13 +112,14 @@ def stat_progect(ip_ser , work ): # передача с помощью суб п
          print('nevihodit')
       return stat_progect( ip_ser , work )
 
-   logger.debug(f"Старт потока {work} {ip_ser}")
+   logger.debug(f"Start potoka {work} {ip_ser}")
    #input('sdfe')
    try:
       some_date = datetime.now()
       start_time= time()
       # Формируем токены и файл для передачи 
       data_drive=drive_new_config(work)
+
       if data_drive:
          # Формируем Команду 
          com=f'rclone copy dbox_{work}:{data_drive["plot"]} drive_{work}: --drive-stop-on-upload-limit --transfers 1 -P --drive-service-account-file accounts/{data_drive["jsone_nomber"]}.json -v --log-file /root/log/rclone.log'
@@ -129,7 +138,7 @@ def stat_progect(ip_ser , work ): # передача с помощью суб п
              line = str(process.stdout.readline())
              #print('line', line)
              if not line:
-                print('Завершено')
+                print('Completed')
                 er='OK'
 
              match2 = re.search(r',\s*(\d+)%\s*,', line)
@@ -160,15 +169,15 @@ def stat_progect(ip_ser , work ): # передача с помощью суб п
 
          now_date = datetime.now()
          a=now_date - some_date
-         logger.info(f'[{(process.pid)}] Время выполнения {timedelta(seconds=a.seconds)} PEREDAN : {data_drive["plot"]}')
+         logger.info(f'[{(process.pid)}] Time_work {timedelta(seconds=a.seconds)} PEREDAN : {data_drive["plot"]}')
          #reqest_sql_ok(data_drive[3])
          #if time() - start_time > 2000:
             # Проверим по логу передан или нет
-         logger.info(f' Проверка по логу  ') 
+         logger.info(f' Get log  ') 
          with open('/root/log/rclone.log', 'r') as f:
             for line in f:
                 if f'{data_drive["plot"]}: Copied (new)' in line:
-                    logger.info(f'confirm plots {data_drive["plot"]}')
+                    logger.info(f'Confirm plots {data_drive["plot"]}')
 
 
          # Переносим На шаре и удаляем с базы 
@@ -186,16 +195,14 @@ def main():
    print(potok)
    
 
-   #from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED, FIRST_COMPLETED
-   #all_task=[]
-#
-   #executor =ThreadPoolExecutor(max_workers=int(potok))
-#
-   #for x in range(1,10000):
-   #   executor.submit(stat_progect,ip_address,x)
-   #   sleep(5)
+   from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED, FIRST_COMPLETED
+   executor =ThreadPoolExecutor(max_workers=int(potok))
 
-   stat_progect(ip_address,1)
+   for x in range(1,10000):
+      executor.submit(stat_progect,ip_address,x)
+      sleep(5)
+
+   #stat_progect(ip_address,1)
 
    #wait(all_task, return_when=ALL_COMPLETED)
 
