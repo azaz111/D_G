@@ -92,8 +92,8 @@ def drive_new_config(sektor): # Подготовка конфигураций
 def stat_progect(ip_ser , work ): # передача с помощью суб процесса
    global full_speed
    global baza_pid
-   if chek_ref() != 'НЕВАЛИДНЫЙ ТОКЕН':
-      print('ТОКЕН ВАЛИДНЫЙ')
+   if chek_ref() != 'nevalid':
+      print('Token Ok')
    else : 
       logger.error(f"НЕВАЛИДНЫЙ ТОКЕН {work} {ip_ser}")
       apobj.notify(body=f"[{ip_ser}]⚠️ НЕВАЛИДНЫЙ ТОКЕН ")
@@ -186,16 +186,16 @@ def main():
    print(potok)
    
 
-   from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED, FIRST_COMPLETED
-   all_task=[]
+   #from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED, FIRST_COMPLETED
+   #all_task=[]
+#
+   #executor =ThreadPoolExecutor(max_workers=int(potok))
+#
+   #for x in range(1,10000):
+   #   executor.submit(stat_progect,ip_address,x)
+   #   sleep(5)
 
-   executor =ThreadPoolExecutor(max_workers=int(potok))
-
-   for x in range(1,10000):
-      executor.submit(stat_progect,ip_address,x)
-      sleep(5)
-
-   #stat_progect(ip_address,1)
+   stat_progect(ip_address,1)
 
    #wait(all_task, return_when=ALL_COMPLETED)
 
