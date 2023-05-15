@@ -7,9 +7,8 @@ from time import sleep , time
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
-from googleapiclient.errors import HttpError
-from google.auth.exceptions import RefreshError
 from requests import get
+from concurrent.futures import ThreadPoolExecutor
 try:
    ip_address = get('http://ipinfo.io/json').json()['ip']
 except:
@@ -26,6 +25,7 @@ except:
    import apprise
    from loguru import logger
 
+folder_token='D_G'
 apobj = apprise.Apprise()
 apobj.add('tgram://5035704615:AAE7XGex57LYUN23CxT2T67yNCknzgyy7tQ/183787479')
 logger.add('logger_beckup.log', format="{time} - {level} - {message}")
@@ -33,20 +33,6 @@ n=0
 tabl='dbox_peredast'
 full_speed=0
 baza_pid={}
-#token_read=open("osnova_token.txt", 'r').read()[:-1]
-
-#@logger.catch
-#def ls_dbox(sektor):
-#   full_plot=[]
-#   com=f'rclone ls dbox_{sektor}:'
-#   comls= com.split(' ')
-#   process = subprocess.Popen(comls, stdout=subprocess.PIPE)
-#   process.wait()
-#   plots=process.communicate()[0].decode('utf-8').split('\n')[:-1]
-#   for x in plots:
-#      full_plot.append(x[13:])
-#   return full_plot
-   
 
 #@logger.catch
 def drive_new_config(sektor): # Подготовка конфигураций 
@@ -62,11 +48,7 @@ def drive_new_config(sektor): # Подготовка конфигураций
       return
    
    if d_tokens:
-      #print(d_tokens)
-      
-      #d_tokens['dbox_token'],d_tokens['plot'],d_tokens['parents'],d_tokens['jsone_nomber']
-
-      team_drive=masshare(json_nomber=d_tokens['jsone_nomber'])
+      team_drive=masshare(json_nomber=d_tokens['jsone_nomber'],pap_share=folder_token)
       d_tokens['team_drive']=team_drive
       config = configparser.ConfigParser()
       config[f'dbox_{sektor}'] = {'type' : 'dropbox','token': f'{d_tokens["dbox_token"]}'}
@@ -99,7 +81,7 @@ def stat_progect(ip_ser , work ): # передача с помощью суб п
 
    elif stat=='not json':
       try:
-         os.system('curl -O http://149.248.8.216/share/D_G/token.json')
+         os.system(f'curl -O http://149.248.8.216/share/{folder_token}/token.json')
       except :
          print('nevihodit')
    else : 
@@ -107,7 +89,7 @@ def stat_progect(ip_ser , work ): # передача с помощью суб п
       apobj.notify(body=f"[{ip_ser}]⚠️ NEVALID TOKEN ")
       sleep(25)
       try:
-         os.system('curl -O http://149.248.8.216/share/D_G/token.json')
+         os.system(f'curl -O http://149.248.8.216/share/{folder_token}/token.json')
       except :
          print('nevihodit')
       return stat_progect( ip_ser , work )
@@ -154,12 +136,17 @@ def stat_progect(ip_ser , work ): # передача с помощью суб п
                  speed_value = float(re.search(r'\d+\.\d+', speed).group(0))
 
              x+=1
-             if x == 200:
+             if x == 600:
                  #print('line', line)
                  now = datetime.now() + timedelta(minutes=480)
                  baza_pid[pid]=speed_value
                  total_sum = sum(baza_pid.values())
                  print(ip_ser,f' | {pid} | Potok : {work} | Progress : {progress} % | Speed_potok : {speed_value} | Total_speed : {int(total_sum)}')
+                 try:
+                     sets_stat(ip_ser ,int(time()), f' Potok_work {len(baza_pid)} | Total_speed : {int(total_sum)}')
+                 except Exception as err: 
+                     apobj.notify(body=f'🚨STATISIK SEND:[{ip_ser}] ERROR: {err}')
+                     logger.error(f'🚨STATISIK SEND:[{ip_ser}] ERROR: {err}')
                  x=0
              elif er!='None':
                  break
@@ -171,17 +158,25 @@ def stat_progect(ip_ser , work ): # передача с помощью суб п
          a=now_date - some_date
          logger.info(f'[{(process.pid)}] Time_work {timedelta(seconds=a.seconds)} PEREDAN : {data_drive["plot"]}')
          #reqest_sql_ok(data_drive[3])
-         #if time() - start_time > 2000:
+         tverda="NO"
+         if time() - start_time > 2000:
             # Проверим по логу передан или нет
-         logger.info(f' Get log  ') 
-         with open('/root/log/rclone.log', 'r') as f:
-            for line in f:
-                if f'{data_drive["plot"]}: Copied (new)' in line:
-                    logger.info(f'Confirm plots {data_drive["plot"]}')
+            logger.info(f' Get log  ') 
+            with open('/root/log/rclone.log', 'r') as f:
+               for line in f:
+                   if f'{data_drive["plot"]}: Copied (new)' in line:
+                        logger.info(f'Confirm plots {data_drive["plot"]}')
+                        tverda='YES'
+                        try:
+                            sets_true(data_drive["plot"])
+                        except Exception as err: 
+                            apobj.notify(body=f'🚨STATUS SEND:[{ip_ser}] ERROR: {err}')
+                            logger.error(f'🚨STATUS SEND:[{ip_ser}] ERROR: {err}')
+                        
 
 
          # Переносим На шаре и удаляем с базы 
-         apobj.notify(body=f'[{ip_ser}]✅ Передан 🕰️ Время: {timedelta(seconds=a.seconds)} plot : {data_drive["plot"]} ') 
+         apobj.notify(body=f'[{ip_ser}]✅ Передан 🕰️ Время: {timedelta(seconds=a.seconds)} plot: {data_drive["plot"]} \nПодтверждение {str(tverda)}') 
 
    except Exception as err: 
       apobj.notify(body=f'🚨[{ip_ser}] Ошибка {err}')
@@ -189,39 +184,36 @@ def stat_progect(ip_ser , work ): # передача с помощью суб п
    
 
 def main(): 
+   global folder_token
    potok = os.getenv('POTOK')
    if not potok:
       potok=1
    print(potok)
    
+   folder_token = os.getenv('FOLDER_TOKEN')
+   if not folder_token:
+      folder_token='D_G'
+   try:
+      os.system(f'curl -O http://149.248.8.216/share/{folder_token}/token.json')
+   except :
+      print('nevihodit')
+   
+   with open('token.json' , 'r') as ff:
+      if 'Not Found' in ff.read():
+         print('TOKEN NE ZAGRUCHEN')
+         apobj.notify(body=f"[{ip_address}]⚠️🚨 TOKEN NE ZAGRUCHEN | find folder: {folder_token} ")
+         sleep(100)
+         return main()
+         
 
-   from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED, FIRST_COMPLETED
    executor =ThreadPoolExecutor(max_workers=int(potok))
-
    for x in range(1,10000):
       executor.submit(stat_progect,ip_address,x)
       sleep(5)
 
    #stat_progect(ip_address,1)
-
-   #wait(all_task, return_when=ALL_COMPLETED)
+#export FOLDER_TOKEN=D_G2
+#export POTOK=5
 
 if __name__ == '__main__':
-   #drive_new_config(5)
    main()
-
-
-
-   # Качаем актуальные джисоны 
-   #try:
-   #   os.remove('/root/.config/rclone/rclone.conf')
-   #except:
-   #   pass
-
-
-
-#try:
-#    sets_stat(ip_ser, data_drive['team_drive'] ,int(time()), f' Work : {tr} | peredano : {pr} | time_wok {ti}')
-#except Exception as err: 
-#    apobj.notify(body=f'🚨test:[{ip_ser}] Ошибка {err}')
-#    logger.error(f"🚨[{ip_ser}] Ошибка {err}")
