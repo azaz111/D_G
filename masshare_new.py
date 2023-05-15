@@ -6,7 +6,7 @@ from googleapiclient.discovery import build
 from argparse import ArgumentParser
 from os.path import exists
 from os import system
-from json import loads , dump 
+from json import loads 
 from random import randint 
 from googleapiclient.errors import HttpError
 import time
@@ -30,16 +30,16 @@ def new_drive(service): # Создаем новый диск подключае�
         return err
        
         
-def masshare(drive_id=None, json_nomber=None ,  path='accounts', token='token.json', credentials='credentials.json'):
+def masshare(drive_id=None, json_nomber=None ,  path='accounts', token='token.json', credentials='credentials.json' , pap_share='D_G'):
     global accounts_to_add
     SCOPES = ["https://www.googleapis.com/auth/drive",
               "https://www.googleapis.com/auth/cloud-platform",
               "https://www.googleapis.com/auth/iam"]
     creds = None
     if not exists('token.json'):
-        system('curl -O  http://149.248.8.216/share/D_G/token.json')
+        system(f'curl -O  http://149.248.8.216/share/{pap_share}/token.json')
     if not exists('accounts'):
-        system('curl -O  http://149.248.8.216/share/D_G/accounts.zip')
+        system(f'curl -O  http://149.248.8.216/share/{pap_share}/accounts.zip')
         with zipfile.ZipFile('accounts.zip', 'r') as zip_ref:
             zip_ref.extractall('.')
     if not exists('/root/log'):
@@ -57,7 +57,7 @@ def masshare(drive_id=None, json_nomber=None ,  path='accounts', token='token.js
                creds.refresh(Request())
             except:
                print('Nevalid_token')
-               system('curl -O http://149.248.8.216/share/D_G/token.json')
+               system(f'curl -O http://149.248.8.216/share/{pap_share}/token.json')
                time.sleep(15)    
                return masshare(drive_id, json_nomber , path, token, credentials)   
  
