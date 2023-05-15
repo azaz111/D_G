@@ -21,11 +21,11 @@ def chek_ref():
             try:
                creds.refresh(Request())
             except :
-               return "НЕВАЛИДНЫЙ ТОКЕН"   
+               return "nevalid"   
     else :
-        return "НЕТ ДЖИСОНА"
+        return "not json"
     service_avtoriz_v3()
-    return "ТОКЕН ВАЛИДНЫЙ"
+    return "yes validate"
 
 
 def service_avtoriz_v3(token='token.json'):# АВТОРИЗАЦИЯ  Drive API v3  
