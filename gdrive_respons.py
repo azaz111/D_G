@@ -16,14 +16,16 @@ def chek_ref():
     creds = None
     if os.path.exists('token.json'):
        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            try:
-               creds.refresh(Request())
-            except :
-               return "nevalid"   
+       if not creds or not creds.valid:
+           if creds and creds.expired and creds.refresh_token:
+               try:
+                  print('REff')
+                  creds.refresh(Request())
+               except :
+                  return "nevalid"   
     else :
         return "not json"
+    
     service_avtoriz_v3()
     return "yes validate"
 
