@@ -136,7 +136,7 @@ def stat_progect(ip_ser , work ): # передача с помощью суб п
                  speed_value = float(re.search(r'\d+\.\d+', speed).group(0))
 
              x+=1
-             if x == 600:
+             if x == 800:
                  #print('line', line)
                  now = datetime.now() + timedelta(minutes=480)
                  baza_pid[pid]=speed_value
@@ -159,24 +159,24 @@ def stat_progect(ip_ser , work ): # передача с помощью суб п
          logger.info(f'[{(process.pid)}] Time_work {timedelta(seconds=a.seconds)} PEREDAN : {data_drive["plot"]}')
          #reqest_sql_ok(data_drive[3])
          tverda="NO"
-         if time() - start_time > 2000:
-            # Проверим по логу передан или нет
-            logger.info(f' Get log  ') 
-            with open('/root/log/rclone.log', 'r') as f:
-               for line in f:
-                   if f'{data_drive["plot"]}: Copied (new)' in line:
-                        logger.info(f'Confirm plots {data_drive["plot"]}')
-                        tverda='YES'
-                        try:
-                            sets_true(data_drive["plot"])
-                        except Exception as err: 
-                            apobj.notify(body=f'🚨STATUS SEND:[{ip_ser}] ERROR: {err}')
-                            logger.error(f'🚨STATUS SEND:[{ip_ser}] ERROR: {err}')
+
+         # Проверим по логу передан или нет
+         logger.info(f' Get log  ') 
+         with open('/root/log/rclone.log', 'r') as f:
+            for line in f:
+                if f'{data_drive["plot"]}: Copied (new)' in line:
+                     logger.info(f'Confirm plots : {data_drive["plot"]} for drive : {data_drive["team_drive"]}')
+                     tverda='YES'
+                     try:
+                         sets_true(data_drive["plot"],data_drive["team_drive"])
+                     except Exception as err: 
+                         apobj.notify(body=f'🚨STATUS SEND:[{ip_ser}] ERROR: {err}')
+                         logger.error(f'🚨STATUS SEND:[{ip_ser}] ERROR: {err}')
                         
 
 
          # Переносим На шаре и удаляем с базы 
-         apobj.notify(body=f'[{ip_ser}]✅ Передан 🕰️ Время: {timedelta(seconds=a.seconds)} plot: {data_drive["plot"]} \nПодтверждение {str(tverda)}') 
+         apobj.notify(body=f'[{ip_ser}]✅ Передан 🕰️ Время: {timedelta(seconds=a.seconds)} plot: {data_drive["plot"]} \nПодтверждение {str(tverda)} drive : {data_drive["team_drive"]}') 
 
    except Exception as err: 
       apobj.notify(body=f'🚨[{ip_ser}] Ошибка {err}')
