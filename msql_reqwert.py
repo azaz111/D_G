@@ -79,10 +79,10 @@ def get_one_false():
  
 
 # Установить True   
-def sets_true(id_t):
+def sets_true(name_plots,id_drive):
     with _getConnection() as db:
         cursor = db.cursor()
-        cursor.execute('UPDATE %s SET status = "%s" WHERE id = %s' %(tabl,"True",id_t,))
+        cursor.execute('UPDATE %s SET status_work = "%s" WHERE id = %s' %(tabl,id_drive,name_plots))
         db.commit()
         print("OK")
 
